@@ -1,38 +1,621 @@
-.App {
-  text-align: center;
+.page-shell {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
 }
 
-.App-logo {
-  height: 40vmin;
+.page-orb {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(14px);
+  opacity: 0.9;
   pointer-events: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.page-orb-left {
+  top: 4rem;
+  left: -7rem;
+  width: 18rem;
+  height: 18rem;
+  background: radial-gradient(circle, rgba(240, 130, 66, 0.32), transparent 70%);
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.page-orb-right {
+  right: -5rem;
+  bottom: 5rem;
+  width: 16rem;
+  height: 16rem;
+  background: radial-gradient(circle, rgba(43, 153, 139, 0.24), transparent 72%);
+}
+
+.app-shell {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr);
+  gap: 1.5rem;
+  align-items: stretch;
+  margin-bottom: 1.75rem;
+}
+
+.hero-copy,
+.hero-metrics,
+.panel {
+  background: rgba(255, 252, 247, 0.7);
+  border: 1px solid rgba(114, 93, 67, 0.12);
+  box-shadow: 0 24px 60px rgba(93, 76, 49, 0.12);
+  backdrop-filter: blur(18px);
+}
+
+.hero-copy {
+  padding: 2rem;
+  border-radius: 30px;
+}
+
+.hero-kicker,
+.panel-kicker {
+  margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #c7682c;
+}
+
+.hero h1 {
+  margin: 0;
+  font-family: "Space Grotesk", "Avenir Next", sans-serif;
+  font-size: clamp(2.4rem, 4vw, 4.4rem);
+  line-height: 0.96;
+  letter-spacing: -0.05em;
+  color: #1d2a27;
+}
+
+.hero-description,
+.panel-copy,
+.empty-state-copy,
+.form-note,
+.form-feedback,
+.toolbar-feedback,
+.toolbar-note,
+.contact-muted,
+.contact-note,
+.contact-updated {
+  margin: 0;
+  color: #5f685f;
+  line-height: 1.6;
+}
+
+.hero-description {
+  max-width: 42rem;
+  margin-top: 1rem;
+  font-size: 1.02rem;
+}
+
+.hero-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 30px;
+}
+
+.metric-card {
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
+  min-height: 140px;
+  padding: 1.1rem;
+  border-radius: 24px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.92), rgba(255, 244, 228, 0.72));
+  border: 1px solid rgba(199, 104, 44, 0.12);
+}
+
+.metric-card span {
+  font-size: 0.85rem;
+  color: #6e6d63;
+}
+
+.metric-card strong {
+  margin-top: 0.45rem;
+  font-family: "Space Grotesk", "Avenir Next", sans-serif;
+  font-size: 2.5rem;
+  line-height: 1;
+  color: #163732;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(330px, 0.92fr) minmax(0, 1.4fr);
+  gap: 1.5rem;
+}
+
+.panel {
+  padding: 1.5rem;
+  border-radius: 28px;
+  animation: float-up 0.55s ease both;
+}
+
+.panel-wide {
+  min-width: 0;
+}
+
+.panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.panel-header.compact {
+  margin-bottom: 1.1rem;
+}
+
+.panel h2 {
+  margin: 0;
+  font-family: "Space Grotesk", "Avenir Next", sans-serif;
+  font-size: 1.75rem;
+  line-height: 1.05;
+  color: #182826;
+}
+
+.panel-copy {
+  margin-top: 0.75rem;
+  max-width: 38rem;
+}
+
+.contact-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.field span,
+.search-field span {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #32403d;
+}
+
+.field input,
+.field select,
+.field textarea,
+.search-field input {
+  width: 100%;
+  border: 1px solid rgba(74, 95, 91, 0.16);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.95rem 1rem;
+  color: #172220;
+  transition: border-color 160ms ease, box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.field textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus,
+.search-field input:focus {
+  outline: none;
+  border-color: rgba(199, 104, 44, 0.7);
+  box-shadow: 0 0 0 4px rgba(240, 130, 66, 0.14);
+  transform: translateY(-1px);
+}
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.85rem 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.66);
+  border: 1px solid rgba(74, 95, 91, 0.1);
+}
+
+.checkbox-field input {
+  width: 1rem;
+  height: 1rem;
+}
+
+.checkbox-field span {
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: #32403d;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.primary-button,
+.secondary-button,
+.ghost-button,
+.favorite-button,
+.segmented-button {
+  border: 0;
+  border-radius: 999px;
+  font-weight: 700;
+  transition: transform 160ms ease, box-shadow 160ms ease,
+    background-color 160ms ease, color 160ms ease;
+}
+
+.primary-button,
+.secondary-button {
+  padding: 0.95rem 1.2rem;
+  cursor: pointer;
+}
+
+.primary-button {
+  background: linear-gradient(135deg, #dd6b2c, #f08d4a);
+  color: #fff9f2;
+  box-shadow: 0 16px 28px rgba(221, 107, 44, 0.24);
+}
+
+.secondary-button {
+  background: rgba(29, 41, 38, 0.06);
+  color: #1f4540;
+}
+
+.primary-button:hover,
+.secondary-button:hover,
+.ghost-button:hover,
+.favorite-button:hover,
+.segmented-button:hover {
+  transform: translateY(-1px);
+}
+
+.primary-button:hover {
+  box-shadow: 0 20px 34px rgba(221, 107, 44, 0.3);
+}
+
+.secondary-button:hover,
+.ghost-button:hover {
+  background: rgba(29, 41, 38, 0.1);
+}
+
+.form-note,
+.form-feedback,
+.toolbar-feedback,
+.toolbar-note {
+  font-size: 0.92rem;
+}
+
+.form-feedback,
+.toolbar-feedback {
+  padding: 0.85rem 1rem;
+  border-radius: 16px;
+  background: rgba(237, 244, 241, 0.9);
+  border: 1px solid rgba(43, 153, 139, 0.16);
+  color: #24524b;
+}
+
+.directory-toolbar {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.toolbar-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.9fr);
+  gap: 1rem;
+  align-items: end;
+}
+
+.search-field {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.toolbar-selects {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.small-field span {
+  font-size: 0.84rem;
+}
+
+.toolbar-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.segmented-control {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.segmented-button {
+  padding: 0.72rem 1rem;
+  background: rgba(255, 255, 255, 0.7);
+  color: #40514d;
+  cursor: pointer;
+}
+
+.segmented-button.is-active {
+  background: #183f3a;
+  color: #f8f4ec;
+  box-shadow: 0 14px 28px rgba(24, 63, 58, 0.18);
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.file-button {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-@keyframes App-logo-spin {
+.contact-list {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.contact-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1rem;
+  border-radius: 22px;
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.94), rgba(248, 246, 239, 0.82));
+  border: 1px solid rgba(76, 103, 98, 0.1);
+  animation: float-up 0.45s ease both;
+}
+
+.contact-avatar {
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #183f3a, #2f8a7a);
+  color: #f8f4ec;
+  font-family: "Space Grotesk", "Avenir Next", sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.contact-content {
+  min-width: 0;
+}
+
+.contact-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.contact-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.contact-title-row h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #1a2724;
+}
+
+.favorite-button {
+  width: 2rem;
+  height: 2rem;
+  background: rgba(29, 41, 38, 0.06);
+  color: #48615c;
+  cursor: pointer;
+}
+
+.favorite-button.is-active {
+  background: rgba(240, 141, 74, 0.18);
+  color: #dd6b2c;
+}
+
+.contact-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.55rem;
+}
+
+.contact-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(24, 63, 58, 0.08);
+  color: #214c46;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.contact-pill-highlight {
+  background: rgba(240, 141, 74, 0.16);
+  color: #bb5d24;
+}
+
+.contact-updated {
+  font-size: 0.82rem;
+}
+
+.contact-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.ghost-button {
+  padding: 0.7rem 0.95rem;
+  background: rgba(29, 41, 38, 0.05);
+  color: #1f4540;
+  cursor: pointer;
+}
+
+.danger-button {
+  color: #9b3f39;
+}
+
+.contact-details {
+  display: grid;
+  gap: 0.3rem;
+  margin-top: 0.9rem;
+}
+
+.contact-details a,
+.contact-muted,
+.contact-note {
+  font-size: 0.95rem;
+}
+
+.contact-details a {
+  color: #1d695d;
+  text-decoration: none;
+}
+
+.contact-details a:hover {
+  text-decoration: underline;
+}
+
+.contact-note {
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(76, 103, 98, 0.12);
+}
+
+.empty-state {
+  display: grid;
+  place-items: center;
+  gap: 0.6rem;
+  min-height: 240px;
+  padding: 1.5rem;
+  border-radius: 24px;
+  border: 1px dashed rgba(100, 116, 110, 0.28);
+  background: rgba(255, 255, 255, 0.55);
+  text-align: center;
+}
+
+.empty-state-title {
+  margin: 0;
+  font-family: "Space Grotesk", "Avenir Next", sans-serif;
+  font-size: 1.4rem;
+  color: #20312d;
+}
+
+@keyframes float-up {
   from {
-    transform: rotate(0deg);
+    opacity: 0;
+    transform: translateY(10px);
   }
+
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1040px) {
+  .hero,
+  .dashboard-grid,
+  .toolbar-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-header {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    padding: 1.25rem 1rem 2rem;
+  }
+
+  .hero-copy,
+  .hero-metrics,
+  .panel {
+    border-radius: 24px;
+  }
+
+  .hero-copy {
+    padding: 1.35rem;
+  }
+
+  .hero h1 {
+    font-size: 2.45rem;
+  }
+
+  .hero-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .toolbar-selects {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar-bottom,
+  .toolbar-actions,
+  .contact-actions,
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .contact-card {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-avatar {
+    width: 2.85rem;
+    height: 2.85rem;
+  }
+
+  .contact-row {
+    flex-direction: column;
   }
 }
