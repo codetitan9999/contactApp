@@ -2,6 +2,12 @@
 
 An upgraded version of the original `contactApp` project, rebuilt as a cleaner and more polished contact manager.
 
+## Live Demo
+
+Open the deployed app here:
+
+[https://contact-app-ivory-pi.vercel.app](https://contact-app-ivory-pi.vercel.app)
+
 ## What Changed
 
 - Replaced the starter-template styling with a custom responsive dashboard UI
