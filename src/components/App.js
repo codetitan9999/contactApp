@@ -19,53 +19,20 @@ const CONTACT_CATEGORIES = [
 const FILTER_OPTIONS = [
   { value: "all", label: "All" },
   { value: "favorites", label: "Favorites" },
-  { value: "with-email", label: "With Email" },
+  { value: "with-email", label: "Email Available" },
 ];
 
 const SORT_OPTIONS = [
-  { value: "recent", label: "Recently Updated" },
-  { value: "name", label: "Name A-Z" },
-  { value: "favorites-first", label: "Favorites First" },
-];
-
-const starterContacts = [
-  {
-    id: "starter-ava",
-    name: "Ava Patel",
-    mobile: "+91 98765 43210",
-    email: "ava@northstar.dev",
-    category: "Work",
-    notes: "Product lead. Prefers morning calls on weekdays.",
-    favorite: true,
-    createdAt: "2026-04-01T09:00:00.000Z",
-    updatedAt: "2026-04-03T11:30:00.000Z",
-  },
-  {
-    id: "starter-luca",
-    name: "Luca Rivera",
-    mobile: "+1 (415) 555-0132",
-    email: "luca@atelier.one",
-    category: "Client",
-    notes: "Send polished visual references before the next review.",
-    favorite: false,
-    createdAt: "2026-03-28T15:15:00.000Z",
-    updatedAt: "2026-03-31T08:10:00.000Z",
-  },
-  {
-    id: "starter-mei",
-    name: "Mei Tan",
-    mobile: "+65 8123 4567",
-    email: "mei@harbor.studio",
-    category: "Personal",
-    notes: "Usually replies fastest on WhatsApp.",
-    favorite: true,
-    createdAt: "2026-03-20T13:45:00.000Z",
-    updatedAt: "2026-04-02T18:40:00.000Z",
-  },
+  { value: "recent", label: "Recently updated" },
+  { value: "name", label: "Name (A-Z)" },
+  { value: "favorites-first", label: "Favorites first" },
 ];
 
 const createContactId = () =>
   `contact-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+const isLegacyDemoContact = (contactId = "") =>
+  String(contactId).startsWith("starter-");
 
 const normalizePhoneValue = (phoneNumber = "") =>
   String(phoneNumber).replace(/[^\d+]/g, "");
@@ -105,21 +72,26 @@ const readStoredContacts = () => {
     .find(Boolean);
 
   if (!storedValue) {
-    return starterContacts.map((contact) => normalizeContact(contact));
+    return [];
   }
 
   try {
     const parsedContacts = JSON.parse(storedValue);
 
     if (!Array.isArray(parsedContacts)) {
-      return starterContacts.map((contact) => normalizeContact(contact));
+      return [];
     }
 
     return parsedContacts
       .map((contact) => normalizeContact(contact))
-      .filter((contact) => contact.name && contact.mobile);
+      .filter(
+        (contact) =>
+          contact.name &&
+          contact.mobile &&
+          !isLegacyDemoContact(contact.id)
+      );
   } catch {
-    return starterContacts.map((contact) => normalizeContact(contact));
+    return [];
   }
 };
 
@@ -199,8 +171,8 @@ function App() {
     setEditingContactId("");
     setDirectoryFeedback(
       existingContact
-        ? `Updated ${nextContact.name}.`
-        : `Added ${nextContact.name}.`
+        ? `Saved changes to ${nextContact.name}.`
+        : `${nextContact.name} has been added to your contacts.`
     );
 
     return { ok: true, mode: existingContact ? "edit" : "create" };
@@ -214,12 +186,12 @@ function App() {
     }
 
     setEditingContactId(contactId);
-    setDirectoryFeedback(`Editing ${contactToEdit.name}.`);
+    setDirectoryFeedback(`Editing details for ${contactToEdit.name}.`);
   };
 
   const cancelEditHandler = () => {
     setEditingContactId("");
-    setDirectoryFeedback("Edit canceled.");
+    setDirectoryFeedback("Edit canceled. No changes were saved.");
   };
 
   const deleteContactHandler = (contactId) => {
@@ -237,7 +209,7 @@ function App() {
       setEditingContactId("");
     }
 
-    setDirectoryFeedback(`Removed ${contactToDelete.name}.`);
+    setDirectoryFeedback(`${contactToDelete.name} has been removed.`);
   };
 
   const toggleFavoriteHandler = (contactId) => {
@@ -263,8 +235,8 @@ function App() {
 
     setDirectoryFeedback(
       nextFavoriteState
-        ? `${contactToToggle.name} is now pinned as a favorite.`
-        : `${contactToToggle.name} is no longer pinned.`
+        ? `${contactToToggle.name} has been added to favorites.`
+        : `${contactToToggle.name} has been removed from favorites.`
     );
   };
 
@@ -288,7 +260,11 @@ function App() {
     document.body.removeChild(downloadLink);
     URL.revokeObjectURL(objectUrl);
 
-    setDirectoryFeedback(`Exported ${contacts.length} contacts to a JSON backup.`);
+    setDirectoryFeedback(
+      `Backup downloaded for ${contacts.length} contact${
+        contacts.length === 1 ? "" : "s"
+      }.`
+    );
   };
 
   const importContactsHandler = (file) => {
@@ -305,7 +281,7 @@ function App() {
 
         if (!importedContacts) {
           setDirectoryFeedback(
-            "That file doesn’t look like a contact export from this app."
+            "That file could not be imported. Please use a backup exported from this app."
           );
           return;
         }
@@ -337,14 +313,20 @@ function App() {
         setContacts(nextContacts);
         setDirectoryFeedback(
           importedCount
-            ? `Imported ${importedCount} contacts${
-                skippedCount ? ` and skipped ${skippedCount} duplicates.` : "."
+            ? `Imported ${importedCount} contact${
+                importedCount === 1 ? "" : "s"
+              }${
+                skippedCount
+                  ? ` and skipped ${skippedCount} duplicate${
+                      skippedCount === 1 ? "" : "s"
+                    }.`
+                  : "."
               }`
             : "No new contacts were imported from that file."
         );
       } catch {
         setDirectoryFeedback(
-          "Couldn’t read that file. Try a JSON backup exported from this app."
+          "The selected file could not be read. Please choose a valid JSON backup."
         );
       }
     };
@@ -434,10 +416,10 @@ function App() {
             <div className="panel-header compact">
               <div>
                 <p className="panel-kicker">Directory</p>
-                <h2>Your saved contacts</h2>
+                <h2>Your contact directory</h2>
                 <p className="panel-copy">
-                  Manage favorites, edit profiles, filter by category, and keep
-                  a JSON backup of everything in one lightweight workspace.
+                  Search, filter, and organize your contacts in one place, with
+                  favorites, notes, and backup tools built in.
                 </p>
               </div>
             </div>

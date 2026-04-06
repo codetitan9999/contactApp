@@ -36,7 +36,7 @@ function AddContacts({
   useEffect(() => {
     if (editingContact) {
       setFormData(mapContactToFormState(editingContact));
-      setFeedbackMessage(`Editing ${editingContact.name}.`);
+      setFeedbackMessage(`Updating details for ${editingContact.name}.`);
       previousEditingId.current = editingContact.id;
       return;
     }
@@ -95,14 +95,14 @@ function AddContacts({
     setFormData(createInitialFormState());
     setFeedbackMessage(
       result.mode === "edit"
-        ? "Contact updated and saved locally."
-        : "Contact saved. Your list is already updated below."
+        ? "Changes saved successfully."
+        : "Contact saved successfully."
     );
   };
 
   const handleCancel = () => {
     setFormData(createInitialFormState());
-    setFeedbackMessage("Edit canceled. You can create a new contact instead.");
+    setFeedbackMessage("Edit canceled.");
     onCancelEdit();
   };
 
@@ -111,16 +111,16 @@ function AddContacts({
       <div className="panel-header compact">
         <div>
           <p className="panel-kicker">
-            {editingContact ? "Edit Contact" : "Quick Add"}
+            {editingContact ? "Edit Contact" : "New Contact"}
           </p>
           <h2>
             {editingContact
-              ? "Fine-tune the selected contact"
-              : "Build a better contact list"}
+              ? "Update contact details"
+              : "Add a contact"}
           </h2>
           <p className="panel-copy">
-            Capture richer profiles with categories, notes, and a favorite pin
-            so the directory feels useful instead of just stored.
+            Save the details you need for day-to-day communication, follow-up,
+            and quick reference.
           </p>
         </div>
       </div>
@@ -184,7 +184,7 @@ function AddContacts({
             id="contactNotes"
             name="notes"
             rows="4"
-            placeholder="Anything helpful: best time to call, project context, reminders..."
+            placeholder="Add role, company, preferred contact time, follow-up notes, or other context"
             value={formData.notes}
             onChange={handleChange}
           />
@@ -198,12 +198,12 @@ function AddContacts({
             checked={formData.favorite}
             onChange={handleChange}
           />
-          <span>Pin this person as a favorite</span>
+          <span>Add this contact to favorites</span>
         </label>
 
         <div className="form-actions">
           <button className="primary-button" type="submit">
-            {editingContact ? "Update contact" : "Save contact"}
+            {editingContact ? "Save changes" : "Save contact"}
           </button>
 
           {editingContact ? (
@@ -212,14 +212,13 @@ function AddContacts({
               type="button"
               onClick={handleCancel}
             >
-              Cancel edit
+              Cancel
             </button>
           ) : null}
         </div>
 
         <p className="form-note">
-          Stored locally in this browser, and now easy to back up with JSON
-          export from the directory panel.
+          Your contacts stay in this browser unless you export a backup file.
         </p>
 
         {feedbackMessage ? (

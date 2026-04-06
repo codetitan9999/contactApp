@@ -36,7 +36,7 @@ function DirectoryToolbar({
           <input
             id="searchContacts"
             type="search"
-            placeholder="Try Mei, +91, Client, or WhatsApp"
+            placeholder="Search by name, phone number, email, category, or note"
             value={searchTerm}
             onChange={(event) => onSearchChange(event.target.value)}
           />
@@ -94,7 +94,8 @@ function DirectoryToolbar({
 
         <div className="toolbar-actions">
           <p className="toolbar-note">
-            Showing {visibleContacts} of {totalContacts}
+            Showing {visibleContacts} of {totalContacts} contact
+            {totalContacts === 1 ? "" : "s"}
           </p>
 
           <button
@@ -102,11 +103,11 @@ function DirectoryToolbar({
             type="button"
             onClick={onExportContacts}
           >
-            Export JSON
+            Export backup
           </button>
 
           <label className="secondary-button file-button" htmlFor="importContacts">
-            Import JSON
+            Import backup
           </label>
 
           <input

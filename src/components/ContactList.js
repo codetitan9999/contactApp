@@ -12,20 +12,20 @@ function ContactList({
 }) {
   if (!contacts.length) {
     const emptyStateTitle = hasActiveSearch
-      ? "No matches yet"
+      ? "No contacts match your search"
       : activeFilter === "favorites"
-      ? "No favorites yet"
+      ? "No favorite contacts yet"
       : categoryFilter === "all"
-      ? "No contacts saved"
-      : "No contacts in this view";
+      ? "No contacts yet"
+      : "No contacts in this category";
 
     const emptyStateCopy = hasActiveSearch
-      ? "Try a different keyword or clear the search field to see the full list."
+      ? "Try a different search term or clear one of the active filters."
       : activeFilter === "favorites"
-      ? "Pin a few contacts as favorites to keep your important people within quick reach."
+      ? "Mark important people as favorites to keep them easy to find."
       : categoryFilter !== "all"
-      ? "Switch the category filter or add a new contact in this category."
-      : "Use the form to create your first contact and start building your lightweight address book.";
+      ? "Choose a different category or add a contact to this group."
+      : "Add your first contact to start building your directory.";
 
     return (
       <div className="empty-state">

@@ -9,18 +9,17 @@ function Header({
   return (
     <header className="hero">
       <div className="hero-copy">
-        <p className="hero-kicker">Contact Dashboard</p>
-        <h1>Contacts, now actually useful.</h1>
+        <p className="hero-kicker">Contact Manager</p>
+        <h1>Keep every important contact in one place.</h1>
         <p className="hero-description">
-          This old contact app now supports editing, favorites, categories,
-          notes, sorting, filters, and JSON backup import/export without losing
-          the lightweight feel.
+          Organize phone numbers, email addresses, notes, and priority contacts
+          in a clean directory built for everyday use.
         </p>
       </div>
 
       <div className="hero-metrics">
         <div className="metric-card">
-          <span>Total contacts</span>
+          <span>All contacts</span>
           <strong>{totalContacts}</strong>
         </div>
         <div className="metric-card">
@@ -32,7 +31,7 @@ function Header({
           <strong>{emailCount}</strong>
         </div>
         <div className="metric-card">
-          <span>Visible now</span>
+          <span>Showing</span>
           <strong>{visibleContacts}</strong>
         </div>
       </div>

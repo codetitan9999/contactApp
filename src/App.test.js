@@ -9,7 +9,7 @@ beforeEach(() => {
 test("adds, edits, filters, favorites, and deletes contacts", async () => {
   render(<App />);
 
-  expect(await screen.findByText("Ava Patel")).toBeInTheDocument();
+  expect(await screen.findByText("No contacts yet")).toBeInTheDocument();
 
   await userEvent.type(screen.getByLabelText(/full name/i), "Jordan Lee");
   await userEvent.type(
@@ -28,7 +28,7 @@ test("adds, edits, filters, favorites, and deletes contacts", async () => {
     screen.getByLabelText(/notes/i),
     "Prefers project updates by email."
   );
-  await userEvent.click(screen.getByLabelText(/pin this person as a favorite/i));
+  await userEvent.click(screen.getByLabelText(/add this contact to favorites/i));
   await userEvent.click(screen.getByRole("button", { name: /save contact/i }));
 
   expect(await screen.findByText("Jordan Lee")).toBeInTheDocument();
@@ -39,7 +39,7 @@ test("adds, edits, filters, favorites, and deletes contacts", async () => {
   await userEvent.clear(fullNameInput);
   await userEvent.type(fullNameInput, "Jordan Miles");
   await userEvent.click(
-    screen.getByRole("button", { name: /update contact/i })
+    screen.getByRole("button", { name: /save changes/i })
   );
 
   expect(await screen.findByText("Jordan Miles")).toBeInTheDocument();
