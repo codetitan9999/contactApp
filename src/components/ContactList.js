@@ -9,7 +9,17 @@ function ContactList({
   hasActiveSearch,
   activeFilter,
   categoryFilter,
+  isLoading,
 }) {
+  if (isLoading) {
+    return (
+      <div className="empty-state">
+        <p className="empty-state-title">Loading contacts</p>
+        <p className="empty-state-copy">Getting your latest saved contacts.</p>
+      </div>
+    );
+  }
+
   if (!contacts.length) {
     const emptyStateTitle = hasActiveSearch
       ? "No contacts match your search"
@@ -20,12 +30,12 @@ function ContactList({
       : "No contacts in this category";
 
     const emptyStateCopy = hasActiveSearch
-      ? "Try a different search term or clear one of the active filters."
+      ? "Try a different search or clear a filter."
       : activeFilter === "favorites"
-      ? "Mark important people as favorites to keep them easy to find."
+      ? "Mark contacts as favorites to keep them easy to find."
       : categoryFilter !== "all"
-      ? "Choose a different category or add a contact to this group."
-      : "Add your first contact to start building your directory.";
+      ? "Choose another category or add a contact here."
+      : "Add your first contact to get started.";
 
     return (
       <div className="empty-state">

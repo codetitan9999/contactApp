@@ -10,17 +10,20 @@ function Header({
     <header className="hero">
       <div className="hero-copy">
         <p className="hero-kicker">Contact Manager</p>
-        <h1>Keep every important contact in one place.</h1>
+        <h1>A simple place to keep your contacts.</h1>
         <p className="hero-description">
-          Organize phone numbers, email addresses, notes, and priority contacts
-          in a clean directory built for everyday use.
+          Add people, search quickly, and update details when things change.
         </p>
       </div>
 
       <div className="hero-metrics">
         <div className="metric-card">
-          <span>All contacts</span>
+          <span>Total</span>
           <strong>{totalContacts}</strong>
+        </div>
+        <div className="metric-card">
+          <span>Showing</span>
+          <strong>{visibleContacts}</strong>
         </div>
         <div className="metric-card">
           <span>Favorites</span>
@@ -29,10 +32,6 @@ function Header({
         <div className="metric-card">
           <span>With email</span>
           <strong>{emailCount}</strong>
-        </div>
-        <div className="metric-card">
-          <span>Showing</span>
-          <strong>{visibleContacts}</strong>
         </div>
       </div>
     </header>

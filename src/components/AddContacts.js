@@ -28,6 +28,7 @@ function AddContacts({
   editingContact,
   onCancelEdit,
   contactCategories,
+  storageMode,
 }) {
   const [formData, setFormData] = useState(createInitialFormState);
   const [feedbackMessage, setFeedbackMessage] = useState("");
@@ -56,7 +57,7 @@ function AddContacts({
     }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const normalizedForm = {
@@ -85,7 +86,7 @@ function AddContacts({
       return;
     }
 
-    const result = addContactHandler(normalizedForm);
+    const result = await addContactHandler(normalizedForm);
 
     if (!result.ok) {
       setFeedbackMessage(result.message);
@@ -113,14 +114,9 @@ function AddContacts({
           <p className="panel-kicker">
             {editingContact ? "Edit Contact" : "New Contact"}
           </p>
-          <h2>
-            {editingContact
-              ? "Update contact details"
-              : "Add a contact"}
-          </h2>
+          <h2>{editingContact ? "Update contact details" : "Add a contact"}</h2>
           <p className="panel-copy">
-            Save the details you need for day-to-day communication, follow-up,
-            and quick reference.
+            Enter the basics and save.
           </p>
         </div>
       </div>
@@ -184,7 +180,7 @@ function AddContacts({
             id="contactNotes"
             name="notes"
             rows="4"
-            placeholder="Add role, company, preferred contact time, follow-up notes, or other context"
+            placeholder="Add a short note if needed"
             value={formData.notes}
             onChange={handleChange}
           />
@@ -218,7 +214,9 @@ function AddContacts({
         </div>
 
         <p className="form-note">
-          Your contacts stay in this browser unless you export a backup file.
+          {storageMode === "cloud"
+            ? "Saved to your cloud contacts."
+            : "Saved on this device for now."}
         </p>
 
         {feedbackMessage ? (

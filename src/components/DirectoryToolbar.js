@@ -17,6 +17,7 @@ function DirectoryToolbar({
   contactCategories,
   totalContacts,
   visibleContacts,
+  storageLabel,
 }) {
   const handleImportChange = (event) => {
     const importFile = event.target.files?.[0];
@@ -36,7 +37,7 @@ function DirectoryToolbar({
           <input
             id="searchContacts"
             type="search"
-            placeholder="Search by name, phone number, email, category, or note"
+            placeholder="Search by name, number, email, category, or note"
             value={searchTerm}
             onChange={(event) => onSearchChange(event.target.value)}
           />
@@ -95,7 +96,7 @@ function DirectoryToolbar({
         <div className="toolbar-actions">
           <p className="toolbar-note">
             Showing {visibleContacts} of {totalContacts} contact
-            {totalContacts === 1 ? "" : "s"}
+            {totalContacts === 1 ? "" : "s"} · {storageLabel}
           </p>
 
           <button
@@ -103,11 +104,11 @@ function DirectoryToolbar({
             type="button"
             onClick={onExportContacts}
           >
-            Export backup
+            Export
           </button>
 
           <label className="secondary-button file-button" htmlFor="importContacts">
-            Import backup
+            Import
           </label>
 
           <input

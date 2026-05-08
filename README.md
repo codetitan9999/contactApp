@@ -1,6 +1,6 @@
-# Contact Dashboard
+# Contact Manager
 
-An upgraded version of the original `contactApp` project, rebuilt as a cleaner and more polished contact manager.
+A contact manager built with Create React App, Vercel Functions, and MongoDB-ready persistence.
 
 ## Live Demo
 
@@ -8,15 +8,14 @@ Open the deployed app here:
 
 [https://contact-app-ivory-pi.vercel.app](https://contact-app-ivory-pi.vercel.app)
 
-## What Changed
+## Features
 
-- Replaced the starter-template styling with a custom responsive dashboard UI
-- Added editing, favorites, category filters, notes, and sorting controls
-- Added JSON export/import for simple local backups
-- Added search, delete, and stronger form validation
-- Expanded contacts to support name, mobile number, email, categories, and notes
-- Improved local storage handling with starter data and legacy-data migration
-- Added interaction tests for add, edit, favorite filtering, and delete flows
+- Cloud-ready contact storage through Vercel API functions and MongoDB
+- Graceful fallback to browser storage when the API is unavailable
+- Add, edit, delete, favorite, search, filter, sort, import, and export flows
+- Contact records with name, mobile number, email, category, and notes
+- Responsive interface optimized for desktop and mobile
+- Interaction tests covering API-backed CRUD flows and offline fallback
 
 ## Scripts
 
@@ -24,7 +23,11 @@ In the project directory, you can run:
 
 ### `npm start`
 
-Runs the app in development mode at [http://localhost:3000](http://localhost:3000).
+Runs the CRA frontend at [http://localhost:3000](http://localhost:3000).
+
+### `vercel dev`
+
+Runs the frontend and Vercel Functions together for full local development.
 
 ### `npm test`
 
@@ -36,14 +39,34 @@ Creates an optimized production build in the `build` directory.
 
 ## Deployment
 
-This project is ready for Vercel. The default production build command is:
+This project is set up for Vercel with:
 
 ```bash
 npm run build
 ```
 
-The build output directory is:
+and a static output directory of:
 
 ```bash
 build
 ```
+
+## MongoDB Setup
+
+Add these server-side environment variables to Vercel:
+
+```bash
+MONGODB_URI=your-mongodb-atlas-connection-string
+MONGODB_DB_NAME=contact_manager
+```
+
+You can also copy the template from [.env.example](/Users/sumanth/Desktop/CodexApps/ContactApp/.env.example).
+
+Until these variables are added, the app will keep working in device-only mode with browser storage.
+
+Recommended setup flow:
+
+1. Create a MongoDB Atlas database and get the connection string.
+2. Add `MONGODB_URI` and `MONGODB_DB_NAME` in the Vercel project environment variables.
+3. Pull the variables locally with `vercel env pull .env.local --yes`.
+4. Use `vercel dev` for local testing of both the frontend and API functions.

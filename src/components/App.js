@@ -4,6 +4,14 @@ import Header from "./Header";
 import AddContacts from "./AddContacts";
 import ContactList from "./ContactList";
 import DirectoryToolbar from "./DirectoryToolbar";
+import {
+  canFallbackToLocalStorage,
+  createContact as createContactInApi,
+  deleteContact as deleteContactInApi,
+  fetchContacts as fetchContactsFromApi,
+  importContactsBatch,
+  updateContact as updateContactInApi,
+} from "../services/contactsApi";
 
 const LOCAL_STORAGE_KEY = "contact-dashboard.contacts";
 const LEGACY_STORAGE_KEYS = ["contacts"];
@@ -19,7 +27,7 @@ const CONTACT_CATEGORIES = [
 const FILTER_OPTIONS = [
   { value: "all", label: "All" },
   { value: "favorites", label: "Favorites" },
-  { value: "with-email", label: "Email Available" },
+  { value: "with-email", label: "Has email" },
 ];
 
 const SORT_OPTIONS = [
@@ -107,6 +115,20 @@ const extractImportedContacts = (payload) => {
   return null;
 };
 
+const getLocalModeMessage = (error, hasCachedContacts) => {
+  const isSetupInProgress = error?.status === 503;
+
+  if (isSetupInProgress) {
+    return hasCachedContacts
+      ? "Cloud sync is being set up. Showing the contacts saved on this device."
+      : "Cloud sync is being set up. You can still use the app on this device.";
+  }
+
+  return hasCachedContacts
+    ? "Cloud sync is temporarily unavailable. Showing the contacts saved on this device."
+    : "Cloud sync is temporarily unavailable. You can still save contacts on this device.";
+};
+
 const createExportFilename = () => {
   const dateLabel = new Date().toISOString().slice(0, 10);
   return `contact-dashboard-backup-${dateLabel}.json`;
@@ -120,16 +142,58 @@ function App() {
   const [sortBy, setSortBy] = useState(SORT_OPTIONS[0].value);
   const [editingContactId, setEditingContactId] = useState("");
   const [directoryFeedback, setDirectoryFeedback] = useState("");
+  const [storageMode, setStorageMode] = useState("local");
+  const [isLoadingContacts, setIsLoadingContacts] = useState(true);
 
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(contacts));
     LEGACY_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
   }, [contacts]);
 
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadContacts = async () => {
+      setIsLoadingContacts(true);
+
+      try {
+        const remoteContacts = await fetchContactsFromApi();
+
+        if (isCancelled) {
+          return;
+        }
+
+        setContacts(remoteContacts.map((contact) => normalizeContact(contact)));
+        setStorageMode("cloud");
+        setDirectoryFeedback("");
+      } catch (error) {
+        if (isCancelled) {
+          return;
+        }
+
+        const cachedContacts = readStoredContacts();
+
+        setContacts(cachedContacts);
+        setStorageMode("local");
+        setDirectoryFeedback(getLocalModeMessage(error, Boolean(cachedContacts.length)));
+      } finally {
+        if (!isCancelled) {
+          setIsLoadingContacts(false);
+        }
+      }
+    };
+
+    loadContacts();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
   const editingContact =
     contacts.find((contact) => contact.id === editingContactId) || null;
 
-  const saveContactHandler = (contact) => {
+  const saveContactHandler = async (contact) => {
     const normalizedContact = normalizeContact(contact);
     const normalizedPhone = normalizePhoneValue(normalizedContact.mobile);
     const existingContact = contacts.find(
@@ -149,33 +213,72 @@ function App() {
       };
     }
 
-    const timestamp = new Date().toISOString();
-    const nextContact = {
-      ...normalizedContact,
-      createdAt: existingContact
-        ? existingContact.createdAt
-        : normalizedContact.createdAt,
-      updatedAt: timestamp,
+    const applyLocalSave = () => {
+      const timestamp = new Date().toISOString();
+      const nextContact = {
+        ...normalizedContact,
+        createdAt: existingContact
+          ? existingContact.createdAt
+          : normalizedContact.createdAt,
+        updatedAt: timestamp,
+      };
+
+      setContacts((currentContacts) => {
+        if (existingContact) {
+          return currentContacts.map((currentContact) =>
+            currentContact.id === nextContact.id ? nextContact : currentContact
+          );
+        }
+
+        return [nextContact, ...currentContacts];
+      });
+
+      setEditingContactId("");
+      setStorageMode("local");
+      setDirectoryFeedback(
+        existingContact
+          ? `Saved changes to ${nextContact.name} on this device.`
+          : `${nextContact.name} has been added on this device.`
+      );
+
+      return { ok: true, mode: existingContact ? "edit" : "create" };
     };
 
-    setContacts((currentContacts) => {
-      if (existingContact) {
-        return currentContacts.map((currentContact) =>
-          currentContact.id === nextContact.id ? nextContact : currentContact
-        );
+    try {
+      const savedContact = existingContact
+        ? await updateContactInApi(normalizedContact)
+        : await createContactInApi(normalizedContact);
+      const nextContact = normalizeContact(savedContact);
+
+      setContacts((currentContacts) => {
+        if (existingContact) {
+          return currentContacts.map((currentContact) =>
+            currentContact.id === nextContact.id ? nextContact : currentContact
+          );
+        }
+
+        return [nextContact, ...currentContacts];
+      });
+
+      setEditingContactId("");
+      setStorageMode("cloud");
+      setDirectoryFeedback(
+        existingContact
+          ? `Saved changes to ${nextContact.name}.`
+          : `${nextContact.name} has been added to your contacts.`
+      );
+
+      return { ok: true, mode: existingContact ? "edit" : "create" };
+    } catch (error) {
+      if (!canFallbackToLocalStorage(error)) {
+        return {
+          ok: false,
+          message: error.message || "Unable to save the contact.",
+        };
       }
 
-      return [nextContact, ...currentContacts];
-    });
-
-    setEditingContactId("");
-    setDirectoryFeedback(
-      existingContact
-        ? `Saved changes to ${nextContact.name}.`
-        : `${nextContact.name} has been added to your contacts.`
-    );
-
-    return { ok: true, mode: existingContact ? "edit" : "create" };
+      return applyLocalSave();
+    }
   };
 
   const editContactHandler = (contactId) => {
@@ -194,11 +297,27 @@ function App() {
     setDirectoryFeedback("Edit canceled. No changes were saved.");
   };
 
-  const deleteContactHandler = (contactId) => {
+  const deleteContactHandler = async (contactId) => {
     const contactToDelete = contacts.find((contact) => contact.id === contactId);
 
     if (!contactToDelete) {
       return;
+    }
+
+    try {
+      await deleteContactInApi(contactId);
+      setStorageMode("cloud");
+      setDirectoryFeedback(`${contactToDelete.name} has been removed.`);
+    } catch (error) {
+      if (!canFallbackToLocalStorage(error)) {
+        setDirectoryFeedback(
+          error.message || "Unable to remove this contact right now."
+        );
+        return;
+      }
+
+      setStorageMode("local");
+      setDirectoryFeedback(`${contactToDelete.name} has been removed on this device.`);
     }
 
     setContacts((currentContacts) =>
@@ -208,11 +327,9 @@ function App() {
     if (editingContactId === contactId) {
       setEditingContactId("");
     }
-
-    setDirectoryFeedback(`${contactToDelete.name} has been removed.`);
   };
 
-  const toggleFavoriteHandler = (contactId) => {
+  const toggleFavoriteHandler = async (contactId) => {
     const contactToToggle = contacts.find((contact) => contact.id === contactId);
 
     if (!contactToToggle) {
@@ -221,23 +338,49 @@ function App() {
 
     const nextFavoriteState = !contactToToggle.favorite;
 
-    setContacts((currentContacts) =>
-      currentContacts.map((contact) =>
-        contact.id === contactId
-          ? {
-              ...contact,
-              favorite: nextFavoriteState,
-              updatedAt: new Date().toISOString(),
-            }
-          : contact
-      )
-    );
+    try {
+      const savedContact = await updateContactInApi({
+        ...contactToToggle,
+        favorite: nextFavoriteState,
+      });
 
-    setDirectoryFeedback(
-      nextFavoriteState
-        ? `${contactToToggle.name} has been added to favorites.`
-        : `${contactToToggle.name} has been removed from favorites.`
-    );
+      setContacts((currentContacts) =>
+        currentContacts.map((contact) =>
+          contact.id === contactId ? normalizeContact(savedContact) : contact
+        )
+      );
+      setStorageMode("cloud");
+      setDirectoryFeedback(
+        nextFavoriteState
+          ? `${contactToToggle.name} has been added to favorites.`
+          : `${contactToToggle.name} has been removed from favorites.`
+      );
+    } catch (error) {
+      if (!canFallbackToLocalStorage(error)) {
+        setDirectoryFeedback(
+          error.message || "Unable to update favorites right now."
+        );
+        return;
+      }
+
+      setContacts((currentContacts) =>
+        currentContacts.map((contact) =>
+          contact.id === contactId
+            ? {
+                ...contact,
+                favorite: nextFavoriteState,
+                updatedAt: new Date().toISOString(),
+              }
+            : contact
+        )
+      );
+      setStorageMode("local");
+      setDirectoryFeedback(
+        nextFavoriteState
+          ? `${contactToToggle.name} has been added to favorites on this device.`
+          : `${contactToToggle.name} has been removed from favorites on this device.`
+      );
+    }
   };
 
   const exportContactsHandler = () => {
@@ -267,28 +410,56 @@ function App() {
     );
   };
 
-  const importContactsHandler = (file) => {
+  const importContactsHandler = async (file) => {
     if (!file) {
       return;
     }
 
-    const reader = new FileReader();
+    try {
+      const parsedPayload = JSON.parse(await file.text());
+      const importedContacts = extractImportedContacts(parsedPayload);
 
-    reader.onload = () => {
+      if (!importedContacts) {
+        setDirectoryFeedback(
+          "That file could not be imported. Please use a backup exported from this app."
+        );
+        return;
+      }
+
+      const normalizedImportedContacts = importedContacts
+        .map((contact) => normalizeContact(contact))
+        .filter((contact) => contact.name && contact.mobile);
+
+      if (!normalizedImportedContacts.length) {
+        setDirectoryFeedback("No valid contacts were found in that backup.");
+        return;
+      }
+
       try {
-        const parsedPayload = JSON.parse(String(reader.result || ""));
-        const importedContacts = extractImportedContacts(parsedPayload);
+        const result = await importContactsBatch(normalizedImportedContacts);
 
-        if (!importedContacts) {
+        setContacts(result.contacts.map((contact) => normalizeContact(contact)));
+        setStorageMode("cloud");
+        setDirectoryFeedback(
+          result.importedCount
+            ? `Imported ${result.importedCount} contact${
+                result.importedCount === 1 ? "" : "s"
+              }${
+                result.skippedCount
+                  ? ` and skipped ${result.skippedCount} duplicate${
+                      result.skippedCount === 1 ? "" : "s"
+                    }.`
+                  : "."
+              }`
+            : "No new contacts were imported from that file."
+        );
+      } catch (error) {
+        if (!canFallbackToLocalStorage(error)) {
           setDirectoryFeedback(
-            "That file could not be imported. Please use a backup exported from this app."
+            error.message || "Unable to import contacts right now."
           );
           return;
         }
-
-        const normalizedImportedContacts = importedContacts
-          .map((contact) => normalizeContact(contact))
-          .filter((contact) => contact.name && contact.mobile);
 
         const existingPhoneNumbers = new Set(
           contacts.map((contact) => normalizePhoneValue(contact.mobile))
@@ -311,11 +482,12 @@ function App() {
         });
 
         setContacts(nextContacts);
+        setStorageMode("local");
         setDirectoryFeedback(
           importedCount
             ? `Imported ${importedCount} contact${
                 importedCount === 1 ? "" : "s"
-              }${
+              } on this device${
                 skippedCount
                   ? ` and skipped ${skippedCount} duplicate${
                       skippedCount === 1 ? "" : "s"
@@ -324,14 +496,12 @@ function App() {
               }`
             : "No new contacts were imported from that file."
         );
-      } catch {
-        setDirectoryFeedback(
-          "The selected file could not be read. Please choose a valid JSON backup."
-        );
       }
-    };
-
-    reader.readAsText(file);
+    } catch {
+      setDirectoryFeedback(
+        "The selected file could not be read. Please choose a valid JSON backup."
+      );
+    }
   };
 
   const normalizedQuery = searchTerm.trim().toLowerCase();
@@ -391,11 +561,10 @@ function App() {
 
   const favoritesCount = contacts.filter((contact) => contact.favorite).length;
   const emailCount = contacts.filter((contact) => contact.email).length;
+  const storageLabel =
+    storageMode === "cloud" ? "Cloud sync on" : "This device only";
   return (
     <div className="page-shell">
-      <div className="page-orb page-orb-left" />
-      <div className="page-orb page-orb-right" />
-
       <main className="app-shell">
         <Header
           totalContacts={contacts.length}
@@ -410,6 +579,7 @@ function App() {
             editingContact={editingContact}
             onCancelEdit={cancelEditHandler}
             contactCategories={CONTACT_CATEGORIES}
+            storageMode={storageMode}
           />
 
           <section className="panel panel-wide">
@@ -418,8 +588,7 @@ function App() {
                 <p className="panel-kicker">Directory</p>
                 <h2>Your contact directory</h2>
                 <p className="panel-copy">
-                  Search, filter, and organize your contacts in one place, with
-                  favorites, notes, and backup tools built in.
+                  Search, update, or back up the contacts you have saved.
                 </p>
               </div>
             </div>
@@ -441,6 +610,7 @@ function App() {
               contactCategories={CONTACT_CATEGORIES}
               totalContacts={contacts.length}
               visibleContacts={filteredContacts.length}
+              storageLabel={storageLabel}
             />
 
             <ContactList
@@ -451,6 +621,7 @@ function App() {
               hasActiveSearch={Boolean(normalizedQuery)}
               activeFilter={activeFilter}
               categoryFilter={categoryFilter}
+              isLoading={isLoadingContacts}
             />
           </section>
         </section>

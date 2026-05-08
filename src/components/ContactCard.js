@@ -73,7 +73,7 @@ function ContactCard({
               onClick={() => onDeleteContact(id)}
               aria-label={`Delete ${name}`}
             >
-              Remove
+              Delete
             </button>
           </div>
         </div>
@@ -83,7 +83,7 @@ function ContactCard({
           {email ? (
             <a href={`mailto:${email}`}>{email}</a>
           ) : (
-            <span className="contact-muted">Email not added yet</span>
+            <span className="contact-muted">No email saved</span>
           )}
         </div>
 
